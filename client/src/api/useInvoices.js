@@ -216,7 +216,11 @@ export async function request(path, options = {}) {
       headers: { 'Content-Type': 'application/json', ...options.headers },
     });
 
-    if (response.status === 404 && import.meta.env.MODE !== 'test') {
+    const contentType = response.headers?.get ? response.headers.get('content-type') || '' : '';
+    const isHtmlResponse = contentType.includes('text/html');
+
+    // On Vercel, static rewrites return index.html (content-type: text/html)
+    if ((response.status === 404 || isHtmlResponse) && import.meta.env.MODE !== 'test') {
       return fallbackStorageRequest(path, options);
     }
 
@@ -232,15 +236,8 @@ export async function request(path, options = {}) {
     if (import.meta.env.MODE === 'test') {
       throw error;
     }
-    // Network errors (e.g. static hosting on Vercel)
-    if (
-      error.message?.includes('Failed to fetch') ||
-      error.message?.includes('NetworkError') ||
-      error.name === 'TypeError'
-    ) {
-      return fallbackStorageRequest(path, options);
-    }
-    throw error;
+    // On Vercel or static hosting, fallback to local persistent store for any network, HTML, or parse errors
+    return fallbackStorageRequest(path, options);
   }
 }
 
