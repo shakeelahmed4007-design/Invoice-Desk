@@ -125,27 +125,28 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-3 sm:p-5 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 sm:p-6 backdrop-blur-md transition-opacity"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) close();
       }}
     >
+      {/* Centered Popup Dialog (Half-Screen Width: max-w-xl) */}
       <section
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-labelledby="form-title"
         onKeyDown={keydown}
-        className="flex w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl border border-slate-200/90 overflow-hidden"
+        className="relative w-full max-w-xl rounded-2xl sm:rounded-3xl bg-white shadow-2xl shadow-black/35 border border-slate-200/90 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
       >
-        {/* Header */}
-        <header className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5 sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-sm">
-              <Plus size={16} />
+        {/* Popup Header */}
+        <header className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-sm">
+              <Plus size={18} />
             </span>
             <div>
-              <h2 id="form-title" className="text-base font-bold text-slate-900 leading-tight">
+              <h2 id="form-title" className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
                 {invoice ? 'Edit invoice' : 'Create an invoice'}
               </h2>
               <p className="text-[11px] text-slate-500">
@@ -154,19 +155,19 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
             </div>
           </div>
           <button
-            className="icon-btn hover:bg-slate-100 rounded-lg !p-1.5 text-slate-400 hover:text-slate-700"
+            className="icon-btn hover:bg-slate-200/80 rounded-xl !p-1.5 text-slate-400 hover:text-slate-700 transition-colors"
             onClick={close}
             disabled={busy}
             aria-label="Close invoice form"
           >
-            <X size={17} />
+            <X size={18} />
           </button>
         </header>
 
-        {/* Compact 4-Row Grid Form */}
-        <form onSubmit={submit} noValidate className="p-5 sm:p-6 space-y-3">
+        {/* Popup Form Body */}
+        <form onSubmit={submit} noValidate className="p-5 sm:p-6 space-y-3.5">
           {/* Row 1: Invoice Number & Vendor Name */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-[11px] font-semibold text-slate-700" htmlFor="field-invoice_number">
@@ -215,8 +216,8 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
             </div>
           </div>
 
-          {/* Row 2: Amount (with Currency) & Initial Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Row 2: Amount (with Currency) & Status */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-[11px] font-semibold text-slate-700" htmlFor="field-amount">
@@ -226,7 +227,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                   <span className="text-[10px] font-semibold text-red-600">{errors.amount}</span>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-[1fr_88px] gap-2">
                 <input
                   id="field-amount"
                   name="amount"
@@ -236,7 +237,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                   value={values.amount}
                   onChange={change}
                   disabled={busy}
-                  className="field flex-1 !py-2 !text-xs sm:!text-sm rounded-xl"
+                  className="field !py-2 !text-xs sm:!text-sm rounded-xl font-medium"
                   aria-invalid={!!errors.amount}
                 />
                 <select
@@ -244,7 +245,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                   name="currency"
                   value={values.currency}
                   onChange={change}
-                  className="field !w-24 !py-2 !text-xs sm:!text-sm rounded-xl"
+                  className="field !py-2 !text-xs sm:!text-sm rounded-xl font-semibold text-center"
                   disabled={busy}
                 >
                   {['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'PKR', 'AED'].map((v) => (
@@ -264,7 +265,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                 value={values.status}
                 onChange={change}
                 disabled={busy}
-                className="field !py-2 !text-xs sm:!text-sm rounded-xl"
+                className="field !py-2 !text-xs sm:!text-sm rounded-xl font-medium"
               >
                 <option value="processing">Processing</option>
                 <option value="needs_review">Needs review</option>
@@ -273,7 +274,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
           </div>
 
           {/* Row 3: Invoice Date & Due Date */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-[11px] font-semibold text-slate-700" htmlFor="field-invoice_date">
@@ -319,7 +320,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
           </div>
 
           {/* Row 4: Description & Review Reason */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-[11px] font-semibold text-slate-700" htmlFor="field-description">
@@ -338,7 +339,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                 value={values.description}
                 onChange={change}
                 disabled={busy}
-                className="field !py-2 !text-xs sm:!text-sm rounded-xl min-h-[56px] max-h-[64px] resize-none"
+                className="field !py-2 !text-xs sm:!text-sm rounded-xl min-h-[58px] max-h-[64px] resize-none"
                 aria-invalid={!!errors.description}
               />
             </div>
@@ -356,7 +357,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                 value={values.flag_reason}
                 onChange={change}
                 disabled={busy}
-                className="field !py-2 !text-xs sm:!text-sm rounded-xl min-h-[56px] max-h-[64px] resize-none"
+                className="field !py-2 !text-xs sm:!text-sm rounded-xl min-h-[58px] max-h-[64px] resize-none"
               />
             </div>
           </div>
@@ -367,11 +368,11 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
             </p>
           )}
 
-          {/* Footer Actions */}
-          <footer className="pt-2 flex items-center justify-between gap-3 border-t border-slate-100">
+          {/* Popup Footer Actions */}
+          <footer className="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
             <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
               <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
-              <span>Duplicate checks run automatically</span>
+              <span>Auto-duplicate checks</span>
             </div>
             <div className="flex items-center gap-2">
               <button
