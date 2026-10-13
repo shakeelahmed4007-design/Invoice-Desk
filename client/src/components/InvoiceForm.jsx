@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { X, Plus, ShieldCheck, FileText, ArrowRight, LoaderCircle } from 'lucide-react';
 import { request } from '../api/useInvoices';
 import { money } from '../format';
+
 const today = () => new Date().toLocaleDateString('en-CA');
+
 export default function InvoiceForm({ invoice, onClose, onSaved }) {
   const initial = invoice
     ? {
@@ -21,12 +23,15 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
         status: 'processing',
         flag_reason: '',
       };
+
   const [values, setValues] = useState(initial),
     [errors, setErrors] = useState({}),
     [busy, setBusy] = useState(false),
     [failure, setFailure] = useState('');
+
   const panel = useRef(null),
     first = useRef(null);
+
   useEffect(() => {
     const before = document.activeElement;
     const overflow = document.body.style.overflow;
@@ -38,11 +43,13 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
       else document.getElementById('add-invoice')?.focus();
     };
   }, []);
+
   function change(event) {
     const { name, value } = event.target;
     setValues((v) => ({ ...v, [name]: value }));
     setErrors((e) => ({ ...e, [name]: '' }));
   }
+
   function close() {
     if (
       !busy &&
@@ -51,6 +58,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
     )
       onClose();
   }
+
   function keydown(event) {
     if (event.key === 'Escape') {
       event.preventDefault();
@@ -71,6 +79,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
       }
     }
   }
+
   async function submit(event) {
     event.preventDefault();
     const next = {};
@@ -80,7 +89,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
     const [whole, fraction = ''] = values.amount.split('.');
     const cents = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
     if (!validAmount || cents <= 0 || cents > 99999999999)
-      next.amount = 'Enter a positive amount with up to 2 decimals (maximum 999,999,999.99).';
+      next.amount = 'Enter a positive amount (e.g. 1200.50).';
     if (!values.invoice_date) next.invoice_date = 'Choose an invoice date.';
     if (!values.due_date || values.due_date < values.invoice_date)
       next.due_date = 'Due date must be on or after invoice date.';
@@ -114,9 +123,10 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
       setBusy(false);
     }
   }
+
   const field = (name, label, type = 'text', extra = {}) => (
     <div>
-      <label className="field-label" htmlFor={`field-${name}`}>
+      <label className="mb-1 block text-[11px] font-semibold text-slate-700" htmlFor={`field-${name}`}>
         {label}
       </label>
       <input
@@ -128,20 +138,21 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
         value={values[name]}
         onChange={change}
         disabled={busy}
-        className="field"
+        className="field !py-2 !text-xs sm:!text-sm rounded-xl"
         aria-invalid={!!errors[name]}
         aria-describedby={errors[name] ? `error-${name}` : undefined}
       />
       {errors[name] && (
-        <p className="field-error" id={`error-${name}`}>
+        <p className="mt-1 text-[11px] font-medium text-red-600" id={`error-${name}`}>
           {errors[name]}
         </p>
       )}
     </div>
   );
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-2 sm:p-4 backdrop-blur-sm"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) close();
       }}
@@ -152,45 +163,56 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
         aria-modal="true"
         aria-labelledby="form-title"
         onKeyDown={keydown}
-        className="flex max-h-full w-full max-w-4xl flex-col overflow-hidden bg-white shadow-2xl sm:rounded-2xl"
+        className="flex max-h-[96vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-2xl border border-slate-200/80"
       >
-        <header className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-          <div className="flex items-center gap-3">
-            <span className="rounded-xl bg-indigo-50 p-3 text-indigo-600">
-              <Plus size={22} />
+        {/* Header */}
+        <header className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 shadow-sm">
+              <Plus size={18} />
             </span>
             <div>
-              <h2 id="form-title" className="text-xl font-bold">
+              <h2 id="form-title" className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
                 {invoice ? 'Edit invoice' : 'Create an invoice'}
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="text-[11px] text-slate-500">
                 {invoice
-                  ? 'Update the details before a decision is recorded.'
-                  : 'Add the details. We’ll check for duplicates automatically.'}
+                  ? 'Update invoice details before review.'
+                  : 'Add invoice details. Duplicates are flagged automatically.'}
               </p>
             </div>
           </div>
           <button
-            className="icon-btn"
+            className="icon-btn hover:bg-slate-100 rounded-xl !p-1.5"
             onClick={close}
             disabled={busy}
             aria-label="Close invoice form"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </header>
-        <form onSubmit={submit} noValidate className="overflow-y-auto">
-          <div className="grid md:grid-cols-[1fr_260px]">
-            <div className="space-y-5 p-6 sm:p-8">
-              <div className="section-label">01 / Invoice information</div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {field('invoice_number', 'Invoice number', 'text', { maxLength: 80 })}
-                {field('vendor_name', 'Vendor name', 'text', {
-                  maxLength: 160,
-                })}
-                {field('amount', 'Amount', 'text', { inputMode: 'decimal' })}
+
+        {/* Content Body (Fit onto 1 screen) */}
+        <form onSubmit={submit} noValidate className="flex flex-col overflow-hidden">
+          <div className="grid md:grid-cols-[1fr_250px] overflow-hidden">
+            {/* Form Fields Left Column */}
+            <div className="space-y-3 p-4 sm:p-5 lg:p-6 overflow-y-auto max-h-[calc(96vh-125px)]">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-2">
+                  01 / Invoice Information
+                </p>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  {field('invoice_number', 'Invoice number', 'text', { maxLength: 80, placeholder: 'e.g. INV-1042' })}
+                  {field('vendor_name', 'Vendor name', 'text', { maxLength: 160, placeholder: 'e.g. Acme Corp' })}
+                </div>
+              </div>
+
+              <div className="grid gap-2.5 sm:grid-cols-4">
+                <div className="sm:col-span-2">
+                  {field('amount', 'Amount', 'text', { inputMode: 'decimal', placeholder: '0.00' })}
+                </div>
                 <div>
-                  <label className="field-label" htmlFor="field-currency">
+                  <label className="mb-1 block text-[11px] font-semibold text-slate-700" htmlFor="field-currency">
                     Currency
                   </label>
                   <select
@@ -198,7 +220,7 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                     name="currency"
                     value={values.currency}
                     onChange={change}
-                    className="field"
+                    className="field !py-2 !text-xs sm:!text-sm rounded-xl"
                     disabled={busy}
                   >
                     {['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'PKR', 'AED'].map((v) => (
@@ -206,39 +228,13 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                     ))}
                   </select>
                 </div>
-                {field('invoice_date', 'Invoice date', 'date')}
-                {field('due_date', 'Due date', 'date', { min: values.invoice_date })}
-              </div>
-              <div>
-                <label className="field-label" htmlFor="field-description">
-                  Description
-                </label>
-                <textarea
-                  id="field-description"
-                  name="description"
-                  value={values.description}
-                  onChange={change}
-                  className="field min-h-24"
-                  maxLength={2000}
-                  disabled={busy}
-                  aria-invalid={!!errors.description}
-                  aria-describedby={errors.description ? 'error-description' : undefined}
-                />
-                {errors.description && (
-                  <p id="error-description" className="field-error">
-                    {errors.description}
-                  </p>
-                )}
-              </div>
-              <div className="section-label pt-2">02 / Review preferences</div>
-              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="field-label" htmlFor="field-status">
-                    Initial workflow
+                  <label className="mb-1 block text-[11px] font-semibold text-slate-700" htmlFor="field-status">
+                    Status
                   </label>
                   <select
                     id="field-status"
-                    className="field"
+                    className="field !py-2 !text-xs sm:!text-sm rounded-xl"
                     name="status"
                     value={values.status}
                     onChange={change}
@@ -248,54 +244,103 @@ export default function InvoiceForm({ invoice, onClose, onSaved }) {
                     <option value="needs_review">Needs review</option>
                   </select>
                 </div>
-                {field('flag_reason', 'Review reason (optional)', 'text', { maxLength: 500 })}
               </div>
+
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                {field('invoice_date', 'Invoice date', 'date')}
+                {field('due_date', 'Due date', 'date', { min: values.invoice_date })}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-slate-700" htmlFor="field-description">
+                  Description
+                </label>
+                <textarea
+                  id="field-description"
+                  name="description"
+                  value={values.description}
+                  onChange={change}
+                  rows={2}
+                  className="field !py-2 !text-xs sm:!text-sm rounded-xl min-h-[52px] max-h-[70px] resize-none"
+                  maxLength={2000}
+                  placeholder="Brief description of work or services delivered…"
+                  disabled={busy}
+                  aria-invalid={!!errors.description}
+                  aria-describedby={errors.description ? 'error-description' : undefined}
+                />
+                {errors.description && (
+                  <p id="error-description" className="mt-1 text-[11px] font-medium text-red-600">
+                    {errors.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Review Reason (Optional) */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1.5">
+                  02 / Review Notes
+                </p>
+                {field('flag_reason', 'Review reason (optional)', 'text', {
+                  maxLength: 500,
+                  placeholder: 'Optional note explaining review requirement…',
+                })}
+              </div>
+
               {failure && (
-                <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
+                <p role="alert" className="rounded-xl bg-red-50 border border-red-200 p-2.5 text-xs text-red-700">
                   {failure}
                 </p>
               )}
             </div>
-            <aside className="hidden border-l border-slate-100 bg-slate-50/70 p-6 md:block">
-              <p className="section-label">Live preview</p>
-              <div className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <FileText className="text-indigo-500" size={26} />
-                <p className="mt-6 break-words text-xs font-medium text-slate-400">
-                  {values.invoice_number || 'Invoice number'}
+
+            {/* Live Preview Sidebar */}
+            <aside className="hidden border-l border-slate-100 bg-slate-50/60 p-4 sm:p-5 md:flex md:flex-col md:justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
+                  Live Preview
                 </p>
-                <p className="mt-2 break-words text-lg font-semibold">
-                  {values.vendor_name || 'Vendor name'}
-                </p>
-                <p className="mt-5 break-all text-2xl font-bold tracking-tight">
-                  {money({
-                    amount: Math.round((Number(values.amount) || 0) * 100),
-                    currency: values.currency,
-                  })}
-                </p>
-                <div className="mt-5 border-t pt-4 text-xs text-slate-500">
-                  Due {values.due_date || '—'}
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                    <FileText size={17} />
+                  </div>
+                  <p className="mt-4 truncate text-[11px] font-mono text-slate-400">
+                    {values.invoice_number || 'INV-0000'}
+                  </p>
+                  <p className="mt-1 truncate text-sm font-bold text-slate-900">
+                    {values.vendor_name || 'Vendor Name'}
+                  </p>
+                  <p className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
+                    {money({
+                      amount: Math.round((Number(values.amount) || 0) * 100),
+                      currency: values.currency,
+                    })}
+                  </p>
+                  <div className="mt-3 border-t border-slate-100 pt-2.5 text-[11px] text-slate-400 flex justify-between">
+                    <span>Due Date</span>
+                    <span className="font-semibold text-slate-600">{values.due_date || '—'}</span>
+                  </div>
                 </div>
               </div>
-              <div className="mt-6 flex gap-2 text-xs leading-relaxed text-slate-500">
-                <ShieldCheck className="shrink-0 text-indigo-600" size={18} />
-                <p>
-                  Matching vendor, invoice number and amount? We’ll flag it for review instead of
-                  silently adding a duplicate.
-                </p>
+
+              <div className="mt-4 flex items-start gap-2 rounded-xl bg-emerald-50/70 border border-emerald-100 p-3 text-[11px] text-emerald-800 leading-snug">
+                <ShieldCheck className="shrink-0 text-emerald-600 mt-0.5" size={14} />
+                <p>Matching vendor, number, and amount will be auto-flagged as potential duplicate.</p>
               </div>
             </aside>
           </div>
-          <footer className="sticky bottom-0 flex justify-between gap-3 border-t bg-white px-6 py-4">
-            <button type="button" className="btn" disabled={busy} onClick={close}>
+
+          {/* Footer */}
+          <footer className="border-t border-slate-100 bg-white px-5 py-3 sm:px-6 flex items-center justify-between">
+            <button type="button" className="btn !py-2 !px-4 !text-xs font-semibold" disabled={busy} onClick={close}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={busy}>
+            <button type="submit" className="btn btn-primary !py-2 !px-5 !text-xs font-bold" disabled={busy}>
               {busy ? (
-                <LoaderCircle className="animate-spin" size={16} />
+                <LoaderCircle className="animate-spin" size={14} />
               ) : (
-                <ArrowRight size={16} />
-              )}{' '}
-              {busy ? 'Saving invoice…' : invoice ? 'Save changes' : 'Create invoice'}
+                <ArrowRight size={14} />
+              )}
+              <span>{busy ? 'Saving…' : invoice ? 'Save changes' : 'Create invoice'}</span>
             </button>
           </footer>
         </form>

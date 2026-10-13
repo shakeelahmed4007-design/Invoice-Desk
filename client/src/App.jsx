@@ -38,7 +38,9 @@ export default function App() {
       return { name: 'Alex Morgan', email: 'alex@company.com', role: 'Finance Lead', avatarInitial: 'A' };
     }
     try {
-      const saved = localStorage.getItem('invoicedesk_auth_user');
+      // Clear legacy localStorage auto-login so user must authenticate
+      localStorage.removeItem('invoicedesk_auth_user');
+      const saved = sessionStorage.getItem('invoicedesk_auth_session');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -48,7 +50,7 @@ export default function App() {
   function handleLogin(userData) {
     setUser(userData);
     try {
-      localStorage.setItem('invoicedesk_auth_user', JSON.stringify(userData));
+      sessionStorage.setItem('invoicedesk_auth_session', JSON.stringify(userData));
     } catch {}
     setToast(`Welcome, ${userData.name}!`);
   }
@@ -56,6 +58,7 @@ export default function App() {
   function handleLogout() {
     setUser(null);
     try {
+      sessionStorage.removeItem('invoicedesk_auth_session');
       localStorage.removeItem('invoicedesk_auth_user');
     } catch {}
     setToast('Logged out successfully.');
